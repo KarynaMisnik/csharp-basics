@@ -7,6 +7,7 @@
 - [Nullability in C#](#nullability-in-Csharp)
 - [Strings and interpolation in C#](#strings-and-interpolation-in-Csharp)
 - [Arrays, List<T>, and Collections in C#](#arrays-list-T-and-collections-in-Csharp)
+- [Classes: fields, properties, constructor](#classes-fields-properties-constructor)
 
 ### Console Project Structure
 
@@ -181,3 +182,48 @@ Console.WriteLine($"Hello, {name}! You are {age} years old.");
 | Number of elements | `.Length` | `.Count` |
 | Add/remove elements | No built-in resizing methods | `.Add()`, `.Remove()` |
 | Example | `string[]` | `List<string>` |
+
+### Classes: fields, properties, constructor
+
+A **class** is a blueprint for creating objects. It groups data and methods together.
+
+- **Field** — a variable declared inside a class that stores data.
+- **Property** — provides controlled access to data using `get` and `set`.
+- **Constructor** — a special method that runs when an object is created, usually to set initial values.
+
+#### Example
+
+```csharp
+class Person
+{
+    private int age;                         // Field
+
+    public string Name { get; set; }         // Auto-property
+
+    public Person(string name, int age)      // Constructor
+    {
+        Name = name;
+        this.age = age;
+    }
+}
+```
+
+**Creating an object:**
+
+```csharp
+Person person = new Person("Anna", 25);
+
+Console.WriteLine(person.Name); // Anna
+```
+
+#### Key differences
+
+| Concept | Purpose |
+|---|---|
+| Field | Stores data inside a class |
+| Property | Provides access to data, optionally with validation or other logic |
+| Constructor | Initializes an object when it is created |
+| `this` | Refers to the current object |
+| `new` | Creates a new object |
+
+**Remember:** An auto-property (`{ get; set; }`) automatically creates a hidden field, so you don't need to declare one manually.
