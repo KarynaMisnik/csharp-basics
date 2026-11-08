@@ -16,6 +16,27 @@
   - [4. Objects and References](#objects-and-references)
   - [5. Overriding ToString()](#overriding-tostring)
   - [6. Key Concepts Summary](#key-concepts-summary)
+- [Inheritance and Polymorphism](#inheritance-and-polymorphism)
+- [Access modifiers](#access-modifiers)
+  - [1. Public](#public)
+  - [2. Private](#private)
+  - [3. Protected](#protected)
+  - [4. Internal](#internal)
+- [Encapsulation with properties](#encapsulation-with-properties)
+  - [1. Example: Product class](#example-product-class)
+  - [2. Understanding the syntax](#understanding-the-syntax)
+  - [3. Why price and Price?](#why-price-and-price)
+  - [4. Getter syntax](#getter-syntax)
+  - [5. Using the class](#using-the-class)
+  - [6. Encapsulation](#encapsulation)
+  - [7. Connection to constructors](#connection-to-constructors)
+- [Property patterns](#property-patterns)
+  - [1. Private Setter — get; private set;](#private-setter—get-private-set)
+  - [2. Init-only Property — get; init;](#init-only-property—get-init)
+  - [3. Computed Property](#computed-property)
+  - [4. Property With a Default Value](#property-With-a-default-value)
+  - [5. Summary](#summary)
+- [Static members](#static-members)
 
 ### Console Project Structure
 
@@ -478,3 +499,573 @@ Console.WriteLine(anna.ToString()); // Anna
 - `anna.Name = "Anna"` → changes a property, not the object itself.
 - `Person john = anna` → creates another reference to the same object, not another `Person`.
 - `anna.ToString()` → calls the object's string representation method, using our overridden implementation if one exists.
+
+### Inheritance and Polymorphism
+
+| Concept | Meaning | Example |
+|---|---|---|
+| **Encapsulation** | Controls access to an object's data using properties and access modifiers. | `private`, `public`, `get`, `set` |
+| **Inheritance** | A class inherits members from another class. | `class Dog : Animal` |
+| **Polymorphism** | Different object types can respond differently to the same method call. | `animal.MakeSound()` |
+| **Abstraction** | Hides implementation details and exposes essential functionality. | `abstract class`, `interface` |
+
+### 1. Inheritance — "is a"
+
+A derived class inherits accessible members from a base class.
+
+```csharp
+class Animal
+{
+    public string Name { get; set; } = "";
+}
+
+class Dog : Animal
+{
+}
+```
+
+`Dog` inherits `Name` from `Animal`.
+
+### 2. Polymorphism — "many forms"
+
+Different classes can provide different implementations of the same inherited method.
+
+```csharp
+class Animal
+{
+    public virtual string MakeSound() => "Some sound";
+}
+
+class Dog : Animal
+{
+    public override string MakeSound() => "Woof";
+}
+
+class Cat : Animal
+{
+    public override string MakeSound() => "Meow";
+}
+```
+
+```csharp
+Animal animal1 = new Dog();
+Animal animal2 = new Cat();
+
+Console.WriteLine(animal1.MakeSound()); // Woof
+Console.WriteLine(animal2.MakeSound()); // Meow
+```
+
+### 3. Encapsulation — "protect data"
+
+```csharp
+class Person
+{
+    public string Name { get; private set; } = "";
+
+    public void ChangeName(string name)
+    {
+        Name = name;
+    }
+}
+```
+
+Other classes can read `Name`, but cannot directly assign it. They must use `ChangeName()`.
+
+### 4. Abstraction — "hide complexity"
+
+```csharp
+abstract class Animal
+{
+    public abstract string MakeSound();
+}
+```
+
+This defines what derived classes must implement without specifying how.
+
+### Key Difference
+
+- **Inheritance:** What a class *is* and what it inherits.
+- **Polymorphism:** How different objects *behave* through a common type.
+- **Encapsulation:** Who can access or modify data.
+- **Abstraction:** What functionality is exposed without requiring knowledge of its implementation.
+
+**Remember:** Inheritance establishes the relationship; polymorphism allows different behavior through that relationship.
+
+### Access modifiers
+
+Access modifiers control **where classes, methods, fields, and properties can be accessed**.
+
+| Modifier | Accessible from |
+|---|---|
+| `public` | Anywhere the type is accessible |
+| `private` | Only within the declaring class |
+| `protected` | Within the declaring class and derived classes |
+| `internal` | Within the same assembly (usually the same project) |
+| `protected internal` | Same assembly **or** derived classes in other assemblies |
+| `private protected` | Same class or derived classes within the same assembly |
+
+### 1. Public
+
+Accessible from other classes.
+
+```csharp
+public class Person
+{
+    public string Name { get; set; } = "";
+}
+
+Person anna = new Person();
+anna.Name = "Anna"; // Allowed
+```
+
+### 2. Private
+
+Accessible only within the declaring class.
+
+```csharp
+public class Person
+{
+    private int age = 25;
+}
+```
+
+```csharp
+Person anna = new Person();
+// anna.age; // Error: age is private
+```
+
+### 3. Protected
+
+Accessible inside the class and its derived classes.
+
+```csharp
+class Animal
+{
+    protected string Name = "Animal";
+}
+
+class Dog : Animal
+{
+    public void PrintName()
+    {
+        Console.WriteLine(Name); // Allowed
+    }
+}
+```
+
+### 4. Internal
+
+Accessible within the same assembly, typically the same project.
+
+```csharp
+internal class Person
+{
+    public string Name { get; set; } = "";
+}
+```
+
+Your console project can use `Person`, but a separate test project cannot directly access this `internal` class without special configuration.
+
+### Access Modifiers on Properties
+
+You can also restrict setters:
+
+```csharp
+public string Name { get; private set; } = "";
+```
+
+- `get` is public — other classes can read `Name`.
+- `set` is private — only the declaring class can change `Name` directly.
+
+### Important Defaults
+
+- Top-level classes without an explicit modifier are `internal`.
+- Class members without an explicit modifier are `private`.
+
+**Remember:**
+
+- `public` — accessible from outside.
+- `private` — only this class.
+- `protected` — this class and derived classes.
+- `internal` — this assembly/project.
+
+Use the most restrictive access level that still allows your code to work.
+
+### Encapsulation with properties
+
+### 1. Example: Product class
+
+```csharp
+public class Product
+{
+    private double _price;
+
+    public double Price
+    {
+        get => _price;
+
+        set
+        {
+            if (value < 0)
+                throw new ArgumentOutOfRangeException(
+                    nameof(value), "Price cannot be negative.");
+
+            _price = value;
+        }
+    }
+}
+```
+
+### 2. Understanding the syntax
+
+| Code | Meaning |
+|---|---|
+| `public class Product` | A class accessible from other classes |
+| `private double _price` | Private field storing the actual price |
+| `public double Price` | Public property controlling access to `_price` |
+| `get => _price` | Returns the stored price |
+| `set` | Runs when assigning a new price |
+| `value` | Special variable containing the value being assigned |
+| `if (value < 0)` | Checks whether the new price is negative |
+| `throw` | Raises an exception and stops the assignment |
+| `_price = value` | Stores the new value if validation succeeds |
+
+### 3. Why `_price` and `Price`?
+
+These are two different members:
+
+- **`_price`** is a private *field*. It stores the data.
+- **`Price`** is a public *property*. It controls access to the field.
+
+The `_` prefix is a common naming convention for private fields. It is not a special C# operator.
+
+The public property can access the private field because both belong to the same class.
+
+### 4. Getter syntax
+
+This:
+
+```csharp
+get => _price;
+```
+
+is shorthand for:
+
+```csharp
+get
+{
+    return _price;
+}
+```
+
+The `=>` is called an **expression-bodied member** syntax.
+
+### 5. Using the class
+
+```csharp
+Product product = new Product();
+
+product.Price = 100;
+
+Console.WriteLine(product.Price); // 100
+```
+
+If we try:
+
+```csharp
+product.Price = -20;
+```
+
+The setter throws an `ArgumentOutOfRangeException`.
+
+The stored `_price` remains `100`, because the invalid value is rejected before assignment.
+
+### 6. Encapsulation
+
+**Encapsulation means controlling access to an object's internal data.**
+
+Instead of allowing direct modification of `_price`, we use the public `Price` property to validate values.
+
+This helps prevent invalid object states.
+
+### 7. Connection to constructors
+
+The original `Product` class does not declare a constructor, so C# automatically provides a parameterless constructor.
+
+We could also add our own:
+
+```csharp
+public Product(double price)
+{
+    Price = price;
+}
+```
+
+Then create an object:
+
+```csharp
+Product laptop = new Product(799.99);
+```
+
+Here:
+
+- `Product` — class
+- `laptop` — variable referring to an object
+- `new Product(...)` — creates an object and calls its constructor
+- `double price` — constructor parameter
+- `799.99` — argument
+- `Price = price` — passes the parameter's value through the property setter, including validation
+
+**Important:** Using `Price = price` in the constructor ensures that the same validation runs when creating an object.
+
+### Property patterns
+
+## 1. Private Setter — `get; private set;`
+
+```csharp
+public string Name { get; private set; }
+```
+
+- `public get` — other classes can read the property.
+- `private set` — only code inside the declaring class can change it.
+- Useful when the class should control changes to its data.
+
+Example:
+
+```csharp
+public class Person
+{
+    public string Name { get; private set; }
+
+    public Person(string name)
+    {
+        Name = name;
+    }
+}
+```
+
+In `Program.cs`:
+
+```csharp
+Person anna = new Person("Anna");
+
+Console.WriteLine(anna.Name); // Anna
+anna.Name = "Maria";          // Error: setter is private
+```
+
+**Important:** A private setter is not limited to constructors. Other methods inside `Person` can also change `Name`.
+
+## 2. Init-only Property — `get; init;`
+
+```csharp
+public int BirthYear { get; init; }
+```
+
+- `get` — allows reading the property.
+- `init` — allows assigning the property during object initialization.
+- After initialization, ordinary code cannot reassign it.
+
+Example:
+
+```csharp
+public class Person
+{
+    public int BirthYear { get; init; }
+}
+```
+
+In `Program.cs`:
+
+```csharp
+Person anna = new Person
+{
+    BirthYear = 2000
+};
+
+Console.WriteLine(anna.BirthYear); // 2000
+
+anna.BirthYear = 1995; // Compilation error
+```
+
+The `{ BirthYear = 2000 }` syntax is called an **object initializer**.
+
+An `init` property can also be assigned inside a constructor.
+
+### `private set` vs `init`
+
+| `private set` | `init` |
+|---|---|
+| Can be changed by methods inside the class | Normally assigned only during initialization |
+| Outside code can read but not modify it | Outside code can initialize it if `init` is public |
+| Useful for internally controlled changes | Useful for values intended to remain unchanged |
+
+## 3. Computed Property — `=>`
+
+```csharp
+public int Age => DateTime.Now.Year - BirthYear;
+```
+
+This is a **computed, read-only property**.
+
+Instead of storing an age, C# calculates it whenever we access the property.
+
+The `=>` is shorthand for:
+
+```csharp
+public int Age
+{
+    get
+    {
+        return DateTime.Now.Year - BirthYear;
+    }
+}
+```
+
+Usage:
+
+```csharp
+Console.WriteLine(anna.Age);
+```
+
+There is no setter and no separate backing field for `Age`.
+
+**Note:** This calculation gives the difference between calendar years, not necessarily someone's exact age. Exact age also depends on whether their birthday has occurred this year.
+
+## 4. Property With a Default Value
+
+```csharp
+public bool IsActive { get; set; } = true;
+```
+
+- `bool` — stores `true` or `false`.
+- `= true` — provides the initial value.
+- `get; set;` — allows reading and changing the property.
+
+Example:
+
+```csharp
+Person anna = new Person();
+
+Console.WriteLine(anna.IsActive); // True
+
+anna.IsActive = false;
+
+Console.WriteLine(anna.IsActive); // False
+```
+
+The default value is applied when a new object is initialized.
+
+## 5. Summary
+
+| Property pattern | Can read outside? | Can change after creation? |
+|---|---|---|
+| `get; set;` | Yes | Yes |
+| `get; private set;` | Yes | Yes, from inside the class |
+| `get; init;` | Yes | Normally no |
+| `Age => ...` | Yes | No direct assignment |
+| `get; set; = true;` | Yes | Yes |
+
+### Key Takeaways
+
+- **`get`** — reads a property.
+- **`set`** — assigns a property value.
+- **`private set`** — restricts who can assign it.
+- **`init`** — restricts when it can be assigned.
+- **`=>`** — provides a shorter expression-based implementation.
+- **`= true`** — initializes a property with a default value.
+
+**Remember:** `private set` controls *who* can modify a property, while `init` primarily controls *when* it can be initialized.
+
+### Static Members
+
+### What is `static`?
+
+The `static` keyword means a member belongs to the **class itself**, rather than to an individual object.
+
+Static members can be fields, properties, or methods.
+
+ **Static Properties — Shared Data**
+
+```csharp
+public class Person
+{
+    public string Name { get; set; } = "";
+    public static int PersonCount { get; private set; }
+
+    public Person(string name)
+    {
+        Name = name;
+        PersonCount++;
+    }
+}
+```
+
+Usage:
+
+```csharp
+Person anna = new Person("Anna");
+Person john = new Person("John");
+
+Console.WriteLine(Person.PersonCount); // 2
+```
+
+- `Name` — instance property; each object has its own value.
+- `PersonCount` — static property; shared across all `Person` objects.
+- Access static members using the **class name**.
+
+**Static Methods — No Object Required**
+
+```csharp
+public class Calculator
+{
+    public static int Add(int a, int b)
+    {
+        return a + b;
+    }
+}
+```
+
+Usage:
+
+```csharp
+int result = Calculator.Add(2, 3); // 5
+```
+
+No `new Calculator()` is needed.
+
+**Static Methods and Pure Functions**
+
+A **pure function**:
+
+- Always returns the same result for the same inputs.
+- Does not modify external state or cause side effects.
+
+Example:
+
+```csharp
+public static decimal CalculateTotal(decimal price, int nights)
+{
+    return price * nights;
+}
+```
+
+This method is both `static` and pure.
+
+**Important:** Not every static method is pure. Static methods can also modify data or perform other operations.
+
+**Static vs. Instance Members**
+
+| Instance | Static |
+|---|---|
+| Belongs to an object | Belongs to the class |
+| Access: `anna.Name` | Access: `Person.PersonCount` |
+| Each object has its own instance data | Static data is shared |
+| Usually requires an object | No object required |
+
+**When to Use `static`**
+
+- For shared information, such as counters.
+- For utility methods and calculations that don't depend on a particular object's state.
+- When creating an object would serve no purpose.
+
+**Remember:** `static` answers the question **"Does this belong to an individual object or to the class itself?"**
