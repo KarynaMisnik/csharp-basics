@@ -37,6 +37,12 @@
   - [4. Property With a Default Value](#property-With-a-default-value)
   - [5. Summary](#summary)
 - [Static members](#static-members)
+- [Base constructor](#base-constructor)
+  - [1. What Is a Base Constructor?](#what-is-a-base-constructor)
+  - [2. Example](#example)
+  - [3. Step-by-Step Execution](#step-by-step-execution)
+  - [4. Why Is base(name) Necessary?](#why-is-base-necessary)
+  - [5. Key Concepts](#key-concepts)
 
 ### Console Project Structure
 
@@ -1069,3 +1075,179 @@ This method is both `static` and pure.
 - When creating an object would serve no purpose.
 
 **Remember:** `static` answers the question **"Does this belong to an individual object or to the class itself?"**
+
+### Base Constructor
+
+## 1. What Is a Base Constructor?
+
+In C#, a **derived class (child)** can call a constructor of its **base class (parent)** using `base(...)`.
+
+This is useful when the parent class needs information to initialize the inherited part of an object.
+
+## 2. Example
+
+```csharp
+public class Animal
+{
+    public string Name { get; set; }
+
+    public Animal(string name)
+    {
+        Name = name;
+    }
+}
+
+public class Dog : Animal
+{
+    public string Breed { get; set; }
+
+    public Dog(string name, string breed)
+        : base(name)
+    {
+        Breed = breed;
+    }
+}
+```
+
+### Important Syntax
+
+- `Dog : Animal` — `Dog` inherits from `Animal`.
+- `public Dog(...)` — constructor of the `Dog` class.
+- `: base(name)` — calls the `Animal` constructor with the `name` argument.
+- `Name = name` — assigns a value to the inherited `Name` property.
+- `Breed = breed` — assigns a value to the `Breed` property.
+
+## 3. Step-by-Step Execution
+
+Suppose we create an object:
+
+```csharp
+Dog dog = new Dog("Buddy", "Beagle");
+```
+
+**Step 1 — Call the Dog constructor**
+
+C# receives two arguments:
+
+- `"Buddy"` → parameter `name`
+- `"Beagle"` → parameter `breed`
+
+**Step 2 — Call the base constructor**
+
+Before executing the body of the `Dog` constructor, C# processes:
+
+```csharp
+: base(name)
+```
+
+This calls:
+
+```csharp
+Animal("Buddy")
+```
+
+**Step 3 — Execute the Animal constructor**
+
+```csharp
+public Animal(string name)
+{
+    Name = name;
+}
+```
+
+The `Name` property receives `"Buddy"`.
+
+**Step 4 — Return to the Dog constructor**
+
+After the `Animal` constructor finishes, execution continues with the `Dog` constructor body:
+
+```csharp
+{
+    Breed = breed;
+}
+```
+
+The `Breed` property receives `"Beagle"`.
+
+**Step 5 — Object is ready**
+
+```csharp
+Console.WriteLine(dog.Name);  // Buddy
+Console.WriteLine(dog.Breed); // Beagle
+```
+
+### Execution Flow
+
+```text
+new Dog("Buddy", "Beagle")
+           |
+           v
+Dog constructor is invoked
+           |
+           v
+: base(name)
+           |
+           v
+Animal constructor executes
+           |
+           v
+Name = "Buddy"
+           |
+           v
+Animal constructor finishes
+           |
+           v
+Dog constructor body executes
+           |
+           v
+Breed = "Beagle"
+           |
+           v
+Dog object is ready
+```
+
+*This illustrates constructor-body execution. The runtime also performs object allocation and field initialization.*
+
+## 4. Why Is `base(name)` Necessary?
+
+Our `Animal` class has this constructor:
+
+```csharp
+public Animal(string name)
+```
+
+It requires a `name` argument.
+
+If we omit `base(name)`, C# automatically attempts to call a parameterless constructor:
+
+```csharp
+base()
+```
+
+But `Animal()` does not exist in this example, so the code will not compile.
+
+If the parent class has an accessible parameterless constructor, C# can call it automatically.
+
+## 5. Key Concepts
+
+| Term | Meaning |
+|---|---|
+| Base class | Parent class (`Animal`) |
+| Derived class | Child class (`Dog`) |
+| Inheritance | One class derives from another |
+| `base(name)` | Calls a parent constructor |
+| Parameter | Variable in a constructor definition (`name`) |
+| Argument | Actual value passed (`"Buddy"`) |
+| Initialization | Assigning an initial value |
+
+## Remember
+
+**The base constructor executes before the derived constructor body.**
+
+In our example:
+
+1. `Animal` initializes `Name`.
+2. `Dog` initializes `Breed`.
+3. The completed `Dog` object contains both properties.
+
+`base(...)` is used to call a parent constructor, while `this(...)` can be used to call another constructor in the same class.
